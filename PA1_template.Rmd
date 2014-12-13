@@ -1,25 +1,48 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
-
+# Reproducible Research: Peer Assessment 1
+setwd("/Documentation/Video Trainings/InProgress/Data Science Track/Reproducible Research/Assignments/AS1/RepData_PeerAssessment1")
 
 ## Loading and preprocessing the data
-
-
+```{r}
+activity <- read.csv("activity.csv")
+activity$date <- as.Date(activity$date)
+summary(activity)
+steps_per_day <- aggregate(steps~date,data=activity, sum)
+```
 
 ## What is mean total number of steps taken per day?
-
-
-
+```{r}
+mean(steps_per_day$steps, na.rm=T)
+```
+### Median total number of steps, taken per day:
+```{r}
+median(steps_per_day$steps,na.rm=T)
+```
 ## What is the average daily activity pattern?
-
+```{r}
+int.steps <- aggregate(steps~interval,data=activity, mean)
+plot(int.steps$interval, int.steps$steps, type="l", xlab="Interval", ylab="Steps", main="Time series plot")
+```
 
 
 ## Imputing missing values
+```{r}
+ok <- complete.cases(activity)
+sum(!ok)
+imputed <- activity
+imputed[!ok,]$steps <- int.steps[!ok,]$steps
+iint.steps <- aggregate(steps~interval,data=imputed,mean)
+plot(iint.steps$interval, iint.steps$steps, type="l", xlab="Interval", ylab="Steps", main="Time series plot")
+mean(int.steps$steps,na.rm=T)
+mean(iint.steps$steps,na.rm=T)
 
-
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r echo = TRUE}
+
+activity$wdays <- ifelse(weekdays(activity$date) %in% c("Saturday", "Sunday"), "weekend", "weekday")
+steps <- aggregate(steps~interval+wdays, data=activity, mean)
+library(lattice)
+xyplot(steps~interval|wdays, data=steps, type = "l", layout=c(1,2), xlab="Interval", ylab="Number of steps")
+```
+;
